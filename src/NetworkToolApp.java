@@ -28,7 +28,7 @@ public class NetworkToolApp {
     }
 
     private static void createAndShowGUI() {
-        JFrame frame = new JFrame("Network Tool Application");
+        JFrame frame = new JFrame("Network Tool");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
         frame.setResizable(false);
