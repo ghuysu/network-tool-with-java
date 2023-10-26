@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="java">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/shortpasta-icmp2/lib/jna-3.5.1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/shortpasta-icmp2/lib/platform-3.5.1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/shortpasta-icmp2/lib/shortpasta-icmp2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dnsjava.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
