@@ -1,2 +1,8 @@
-# .gitignore
+# Bỏ qua tệp .DS_Store trên macOS
 .DS_Store
+
+# Bỏ qua thư mục node_modules
+node_modules/
+
+# Bỏ qua tất cả các tệp log
+*.log
