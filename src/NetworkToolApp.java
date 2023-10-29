@@ -279,7 +279,6 @@ public class NetworkToolApp {
         return panel;
     }
 
-
     private static JPanel createTraceroutePanel() {
         JPanel panel = new JPanel();
         JLabel label = new JLabel("Enter IP Address or Domain:");
@@ -292,7 +291,15 @@ public class NetworkToolApp {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String host = inputField.getText();
-
+                outputArea.setText("");
+                if (isValidDomain(host) || isValidIpv4(host)) {
+                    List<String> tracerouteResults = performTraceroute(host);
+                    for (String result : tracerouteResults) {
+                        outputArea.append(result + "\n");
+                    }
+                } else {
+                    outputArea.setText(host + " is not a valid domain or IP address.");
+                }
             }
         });
 
@@ -305,6 +312,39 @@ public class NetworkToolApp {
 
         return panel;
     }
+
+    private static List<String> performTraceroute(String host) {
+        List<String> results = new ArrayList<>();
+        try {
+            IcmpPingRequest request = IcmpPingUtil.createIcmpPingRequest();
+            request.setHost(host);
+
+            for (int ttl = 1; ttl <= 30; ttl++) {
+                request.setTtl(ttl);
+                IcmpPingResponse response = IcmpPingUtil.executePingRequest(request);
+
+                if (response.getTimeoutFlag()) {
+                    results.add(" *");
+                } else {
+                    String resultLine = ttl + ": " + response.getHost();
+                    if (response.getSuccessFlag()) {
+                        resultLine += " (RTT: " + response.getRtt() + " ms)";
+                    }
+                    results.add(resultLine);
+                }
+
+                if (response.getSuccessFlag() && response.getHost().equals(host)) {
+                    results.add("Traceroute completed.");
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            results.add("Error: " + ex.getMessage());
+        }
+        return results;
+    }
+
+
 
     public static boolean isValidDomain(String domain) {
         // Sử dụng biểu thức chính quy để kiểm tra tên miền
