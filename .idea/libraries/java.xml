@@ -5,6 +5,9 @@
       <root url="jar://$PROJECT_DIR$/lib/jna-3.5.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/platform-3.5.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/shortpasta-icmp2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/jpcap/thirdParty/jars/dev-classes_net.ultrametrics-0.03.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/jpcap/thirdParty/jars/fooware_CommandLine-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/jpcap/thirdParty/jars/junit.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
