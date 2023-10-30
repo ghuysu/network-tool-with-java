@@ -1,6 +1,6 @@
 # Bỏ qua tệp .DS_Store trên macOS
 .DS_Store
-
+src/DS_Store
 # Bỏ qua thư mục node_modules
 node_modules/
 
