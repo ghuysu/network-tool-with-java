@@ -8,7 +8,7 @@ import java.util.List;
 public class Traceroute {
 
     public static void main(String[] args) {
-        String host = "tiktok.com"; // Đặt tên miền mặc định là facebook.com
+        String host = "facebook.com"; // Đặt tên miền mặc định là facebook.com
 
         List<String> tracerouteResults = performTraceroute(host);
         for (String result : tracerouteResults) {
