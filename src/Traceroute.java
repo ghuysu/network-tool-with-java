@@ -13,18 +13,19 @@ public class Traceroute {
         ttl = Integer.parseInt(formattedResponse.split("TTL=", 2)[1]);
         for(int i = 1; i <= ttl; i++)
         {
-            IcmpPingRequest req = IcmpPingUtil.createIcmpPingRequest();
-            request.setHost(input);
-            request.setTtl(ttl);
-
-            IcmpPingResponse res = IcmpPingUtil.executePingRequest(req);
-
-            if (response.getErrorMessage() != null) {
-                break;
-            }
-
-            String intermediateHopAddress = res.getHost();
-            System.out.println("Hop " + i + ": " + intermediateHopAddress);
+            System.out.println(ttl);
+//            IcmpPingRequest req = IcmpPingUtil.createIcmpPingRequest();
+//            request.setHost(input);
+//            request.setTtl(ttl);
+//
+//            IcmpPingResponse res = IcmpPingUtil.executePingRequest(req);
+//
+//            if (response.getErrorMessage() != null) {
+//                break;
+//            }
+//
+//            String intermediateHopAddress = res.getHost();
+//            System.out.println("Hop " + i + ": " + intermediateHopAddress);
 
         }
     }
