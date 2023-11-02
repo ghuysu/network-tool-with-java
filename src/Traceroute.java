@@ -2,37 +2,42 @@ import org.shortpasta.icmp2.IcmpPingRequest;
 import org.shortpasta.icmp2.IcmpPingResponse;
 import org.shortpasta.icmp2.IcmpPingUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Traceroute {
 
-    public void performTraceroute(String input) {
-        int ttl;
-        final IcmpPingRequest request = IcmpPingUtil.createIcmpPingRequest ();
-        request.setHost(input);
-        final IcmpPingResponse response = IcmpPingUtil.executePingRequest(request);
-        final String formattedResponse = IcmpPingUtil.formatResponse(response);
-        ttl = Integer.parseInt(formattedResponse.split("TTL=", 2)[1]);
-        for(int i = 1; i <= ttl; i++)
-        {
-            IcmpPingRequest req = IcmpPingUtil.createIcmpPingRequest();
-            request.setHost(input);
-            request.setTtl(ttl);
+    public static void main(String[] args) {
+        String host = "tiktok.com"; // Đặt tên miền mặc định là facebook.com
 
-            IcmpPingResponse res = IcmpPingUtil.executePingRequest(req);
-
-            if (response.getErrorMessage() != null) {
-                break;
-            }
-
-            String intermediateHopAddress = res.getHost();
-            System.out.println("Hop " + i + ": " + intermediateHopAddress);
-
+        List<String> tracerouteResults = performTraceroute(host);
+        for (String result : tracerouteResults) {
+            System.out.println(result);
         }
     }
 
+    private static List<String> performTraceroute(String host) {
+        List<String> results = new ArrayList<>();
+        IcmpPingRequest request = IcmpPingUtil.createIcmpPingRequest();
+        request.setHost(host);
 
-    public static void main(String[] args) {
-        String target = "facebook.com";
-        Traceroute traceroute = new Traceroute();
-        traceroute.performTraceroute(target);
+        for (int ttl = 1; ttl <= 30; ttl++) {
+            request.setTtl(ttl);
+            IcmpPingResponse response = IcmpPingUtil.executePingRequest(request);
+
+            if (response.getTimeoutFlag()) {
+                results.add(String.format("%2d     *        *        *        *", ttl));
+            } else {
+                String resultLine = String.format("%2d     %3d ms     %3d ms     %3d ms     %s", ttl, response.getRtt(), response.getRtt(), response.getRtt(), response.getHost());
+                results.add(resultLine);
+
+                if (response.getSuccessFlag()) {
+                    results.add("Traceroute completed.");
+                    break;
+                }
+            }
+        }
+
+        return results; // Trả về kết quả là danh sách các dòng traceroute
     }
 }
