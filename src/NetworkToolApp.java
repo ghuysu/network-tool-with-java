@@ -97,21 +97,20 @@ public class NetworkToolApp {
         JLabel label = new JLabel("Enter Domain:");
         JTextField inputField = new JTextField(20);
         JButton queryButton = new JButton("Query");
-        JTextArea outputArea = new JTextArea(10, 50);
+        JTextArea outputArea = new JTextArea(10, 48);
         outputArea.setEditable(false);
-
-        // Thêm JComboBox cho kiểu truy vấn
-        String[] queryTypes = {"A", "AAAA", "MX", "CNAME", "TXT", "NS", "PTR", "SRV", "SOA"};
-        JComboBox<String> queryTypeComboBox = new JComboBox<>(queryTypes);
 
         queryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 outputArea.setText("");
                 String domain = inputField.getText();
-                String queryType = queryTypeComboBox.getSelectedItem().toString();
-
-                SimpleResolver resolver = null; // Đặt máy chủ DNS tại đây
+                if(!isValidDomain(domain))
+                {
+                    outputArea.setText("Domain is invalid! Please enter a correct domain!");
+                    return;
+                }
+                SimpleResolver resolver = null;
                 try {
                     resolver = new SimpleResolver("8.8.8.8");
                 } catch (UnknownHostException ex) {
@@ -119,38 +118,65 @@ public class NetworkToolApp {
                 }
 
                 try {
-                    Lookup lookup = new Lookup(domain, Type.value(queryType));
+                    StringBuilder resultBuilder = new StringBuilder();
+                    Lookup lookup = new Lookup(domain);
                     lookup.setResolver(resolver);
-                    Record[] records = lookup.run();
-                    for (Record record : records) {
-                        if (queryType.equals("A") && record instanceof ARecord) {
-                            ARecord aRecord = (ARecord) record;
-                            outputArea.append(aRecord.getAddress().getHostAddress() + "\n");
-                        } else if (queryType.equals("AAAA") && record instanceof AAAARecord) {
-                            AAAARecord aaaaRecord = (AAAARecord) record;
-                            outputArea.append(aaaaRecord.getAddress().getHostAddress() + "\n");
-                        } else if (queryType.equals("MX") && record instanceof MXRecord) {
-                            MXRecord mxRecord = (MXRecord) record;
-                            outputArea.append("Priority: " + mxRecord.getPriority() + ", Mail Server: " + mxRecord.getTarget() + "\n");
-                        } else if (queryType.equals("CNAME") && record instanceof CNAMERecord) {
-                            CNAMERecord cnameRecord = (CNAMERecord) record;
-                            outputArea.append("Canonical Name: " + cnameRecord.getTarget() + "\n");
-                        } else if (queryType.equals("TXT") && record instanceof TXTRecord) {
-                            TXTRecord txtRecord = (TXTRecord) record;
-                            outputArea.append("Text Data: " + txtRecord.rdataToString() + "\n");
-                        } else if (queryType.equals("NS") && record instanceof NSRecord) {
-                            NSRecord nsRecord = (NSRecord) record;
-                            outputArea.append("Name Server: " + nsRecord.getTarget() + "\n");
-                        } else if (queryType.equals("PTR") && record instanceof PTRRecord) {
-                            PTRRecord ptrRecord = (PTRRecord) record;
-                            outputArea.append("Reverse Lookup Pointer: " + ptrRecord.getTarget() + "\n");
-                        } else if (queryType.equals("SRV") && record instanceof SRVRecord) {
-                            SRVRecord srvRecord = (SRVRecord) record;
-                            outputArea.append("Service Priority: " + srvRecord.getPriority() + ", Target: " + srvRecord.getTarget() + "\n");
-                        } else if (queryType.equals("SOA") && record instanceof SOARecord) {
-                            SOARecord soaRecord = (SOARecord) record;
-                            outputArea.append("Name Server: " + soaRecord.getHost() + ", Admin: " + soaRecord.getAdmin() + "\n");
+                    Record[] records;
+                    boolean foundRecords = false;
+
+                    for (String queryType : new String[]{"A", "AAAA", "MX", "CNAME", "TXT", "NS", "PTR", "SRV", "SOA"}) {
+                        lookup = new Lookup(domain, Type.value(queryType));
+                        lookup.setResolver(resolver);
+                        records = lookup.run();
+                        if (records != null) {
+                            for (Record record : records) {
+                                if (queryType.equals("A") && record instanceof ARecord) {
+                                    ARecord aRecord = (ARecord) record;
+                                    resultBuilder.append("IPv4: ").append(aRecord.getAddress().getHostAddress()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("AAAA") && record instanceof AAAARecord) {
+                                    AAAARecord aaaaRecord = (AAAARecord) record;
+                                    resultBuilder.append("IPv6: ").append(aaaaRecord.getAddress().getHostAddress()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("MX") && record instanceof MXRecord) {
+                                    MXRecord mxRecord = (MXRecord) record;
+                                    resultBuilder.append("Priority: ").append(mxRecord.getPriority())
+                                            .append(", Mail Server: ").append(mxRecord.getTarget()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("CNAME") && record instanceof CNAMERecord) {
+                                    CNAMERecord cnameRecord = (CNAMERecord) record;
+                                    resultBuilder.append("Canonical Name: ").append(cnameRecord.getTarget()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("TXT") && record instanceof TXTRecord) {
+                                    TXTRecord txtRecord = (TXTRecord) record;
+                                    resultBuilder.append("Text Data: ").append(txtRecord.rdataToString()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("NS") && record instanceof NSRecord) {
+                                    NSRecord nsRecord = (NSRecord) record;
+                                    resultBuilder.append("Name Server: ").append(nsRecord.getTarget()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("PTR") && record instanceof PTRRecord) {
+                                    PTRRecord ptrRecord = (PTRRecord) record;
+                                    resultBuilder.append("Reverse Lookup Pointer: ").append(ptrRecord.getTarget()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("SRV") && record instanceof SRVRecord) {
+                                    SRVRecord srvRecord = (SRVRecord) record;
+                                    resultBuilder.append("Service Priority: ").append(srvRecord.getPriority())
+                                            .append(", Target: ").append(srvRecord.getTarget()).append("\n");
+                                    foundRecords = true;
+                                } else if (queryType.equals("SOA") && record instanceof SOARecord) {
+                                    SOARecord soaRecord = (SOARecord) record;
+                                    resultBuilder.append("Name Server: ").append(soaRecord.getHost());
+                                    foundRecords = true;
+                                }
+                            }
                         }
+                    }
+
+                    if (!foundRecords) {
+                        outputArea.setText("No records found for the domain.");
+                    } else {
+                        outputArea.setText(resultBuilder.toString());
                     }
                 } catch (Exception ex) {
                     outputArea.setText("Error: " + ex.getMessage());
@@ -160,7 +186,6 @@ public class NetworkToolApp {
 
         panel.add(label);
         panel.add(inputField);
-        panel.add(queryTypeComboBox);
         panel.add(queryButton);
 
         JScrollPane scrollPane = new JScrollPane(outputArea);
