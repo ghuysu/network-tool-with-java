@@ -29,36 +29,28 @@ public class Traceroute {
 
             if (response1.getTimeoutFlag() && response2.getTimeoutFlag() && response3.getTimeoutFlag()) {
                 results.add(String.format("%2d       *          *          *        Request timed out.", ttl));
-            }
-
-            if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
+            } else if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
                 results.add(String.format("%2d     %3d ms     %3d ms     %3d ms     %s", ttl, response1.getRtt(), response2.getRtt(), response3.getRtt(), response1.getHost()));
 
                 if (response1.getSuccessFlag()) {
                     results.add("Traceroute completed.");
                     break;
                 }
-            }
-
-            if (response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
+            } else if (response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
                 results.add(String.format("%2d       *        %3d ms     %3d ms     %s", ttl, response2.getRtt(), response3.getRtt(), response2.getHost()));
 
                 if (response2.getSuccessFlag()) {
                     results.add("Traceroute completed.");
                     break;
                 }
-            }
-
-            if (!response1.getTimeoutFlag() && response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
+            } else if (!response1.getTimeoutFlag() && response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
                 results.add(String.format("%2d     %3d ms       *        %3d ms     %s", ttl, response1.getRtt(), response3.getRtt(), response1.getHost()));
 
                 if (response1.getSuccessFlag()) {
                     results.add("Traceroute completed.");
                     break;
                 }
-            }
-
-            if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && response3.getTimeoutFlag()) {
+            } else if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && response3.getTimeoutFlag()) {
                 results.add(String.format("%2d     %3d ms     %3d ms       *        %s", ttl, response1.getRtt(), response2.getRtt(), response1.getHost()));
 
                 if (response1.getSuccessFlag()) {
