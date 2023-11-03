@@ -284,7 +284,7 @@ public class NetworkToolApp {
         JLabel label = new JLabel("Enter IP Address or Domain:");
         JTextField inputField = new JTextField(20);
         JButton traceButton = new JButton("Trace");
-        JTextArea outputArea = new JTextArea(10, 30);
+        JTextArea outputArea = new JTextArea(17, 52);
         outputArea.setEditable(false);
 
         traceButton.addActionListener(new ActionListener() {
@@ -318,54 +318,54 @@ public class NetworkToolApp {
         IcmpPingRequest request = IcmpPingUtil.createIcmpPingRequest();
         request.setHost(host);
 
+        boolean tracerouteCompleted = false;
+
         for (int ttl = 1; ttl <= 30; ttl++) {
             request.setTtl(ttl);
-            IcmpPingResponse response1 = IcmpPingUtil.executePingRequest(request);
-            IcmpPingResponse response2 = IcmpPingUtil.executePingRequest(request);
-            IcmpPingResponse response3 = IcmpPingUtil.executePingRequest(request);
 
-            if (response1.getTimeoutFlag() && response2.getTimeoutFlag() && response3.getTimeoutFlag()) {
+            IcmpPingResponse[] responses = new IcmpPingResponse[3];
+            boolean allTimeout = true;
+
+            for (int i = 0; i < 3; i++) {
+                responses[i] = IcmpPingUtil.executePingRequest(request);
+                allTimeout &= responses[i].getTimeoutFlag();
+            }
+
+            if (allTimeout) {
                 results.add(String.format("%2d       *          *          *        Request timed out.", ttl));
-            }
+            } else {
+                StringBuilder resultLine = new StringBuilder(String.format("%2d", ttl));
 
-            if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
-                results.add(String.format("%2d     %3d ms     %3d ms     %3d ms     %s", ttl, response1.getRtt(), response2.getRtt(), response3.getRtt(), response1.getHost()));
-
-                if (response1.getSuccessFlag()) {
-                    results.add("Traceroute completed.");
-                    break;
+                for (IcmpPingResponse response : responses) {
+                    if (!response.getTimeoutFlag()) {
+                        resultLine.append(String.format("     %3d ms", response.getRtt()));
+                    } else {
+                        resultLine.append("       *   ");
+                    }
                 }
-            }
 
-            if (response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
-                results.add(String.format("%2d       *        %3d ms     %3d ms     %s", ttl, response2.getRtt(), response3.getRtt(), response2.getHost()));
-
-                if (response2.getSuccessFlag()) {
-                    results.add("Traceroute completed.");
-                    break;
+                if(!responses[0].getTimeoutFlag()){
+                    resultLine.append(String.format("     %s", responses[0].getHost()));
+                } else if(!responses[1].getTimeoutFlag()){
+                    resultLine.append(String.format("     %s", responses[1].getHost()));
+                } else if(!responses[2].getTimeoutFlag()){
+                    resultLine.append(String.format("     %s", responses[2].getHost()));
                 }
-            }
+                results.add(resultLine.toString());
 
-            if (!response1.getTimeoutFlag() && response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
-                results.add(String.format("%2d     %3d ms       *        %3d ms     %s", ttl, response1.getRtt(), response3.getRtt(), response1.getHost()));
-
-                if (response1.getSuccessFlag()) {
+                if (responses[0].getSuccessFlag() || responses[1].getSuccessFlag() || responses[2].getSuccessFlag()) {
                     results.add("Traceroute completed.");
-                    break;
-                }
-            }
-
-            if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && response3.getTimeoutFlag()) {
-                results.add(String.format("%2d     %3d ms     %3d ms       *        %s", ttl, response1.getRtt(), response2.getRtt(), response1.getHost()));
-
-                if (response1.getSuccessFlag()) {
-                    results.add("Traceroute completed.");
+                    tracerouteCompleted = true;
                     break;
                 }
             }
         }
 
-        return results; // Trả về kết quả là danh sách các dòng traceroute
+        if (!tracerouteCompleted) {
+            results.add("Traceroute incomplete.");
+        }
+
+        return results;
     }
 
     public static boolean isValidDomain(String domain) {
