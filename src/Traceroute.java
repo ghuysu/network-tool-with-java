@@ -23,15 +23,45 @@ public class Traceroute {
 
         for (int ttl = 1; ttl <= 30; ttl++) {
             request.setTtl(ttl);
-            IcmpPingResponse response = IcmpPingUtil.executePingRequest(request);
+            IcmpPingResponse response1 = IcmpPingUtil.executePingRequest(request);
+            IcmpPingResponse response2 = IcmpPingUtil.executePingRequest(request);
+            IcmpPingResponse response3 = IcmpPingUtil.executePingRequest(request);
 
-            if (response.getTimeoutFlag()) {
-                results.add(String.format("%2d     *        *        *        *", ttl));
-            } else {
-                String resultLine = String.format("%2d     %3d ms     %3d ms     %3d ms     %s", ttl, response.getRtt(), response.getRtt(), response.getRtt(), response.getHost());
-                results.add(resultLine);
+            if (response1.getTimeoutFlag() && response2.getTimeoutFlag() && response3.getTimeoutFlag()) {
+                results.add(String.format("%2d       *          *          *        Request timed out.", ttl));
+            }
 
-                if (response.getSuccessFlag()) {
+            if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
+                results.add(String.format("%2d     %3d ms     %3d ms     %3d ms     %s", ttl, response1.getRtt(), response2.getRtt(), response3.getRtt(), response1.getHost()));
+
+                if (response1.getSuccessFlag()) {
+                    results.add("Traceroute completed.");
+                    break;
+                }
+            }
+
+            if (response1.getTimeoutFlag() && !response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
+                results.add(String.format("%2d       *        %3d ms     %3d ms     %s", ttl, response2.getRtt(), response3.getRtt(), response2.getHost()));
+
+                if (response2.getSuccessFlag()) {
+                    results.add("Traceroute completed.");
+                    break;
+                }
+            }
+
+            if (!response1.getTimeoutFlag() && response2.getTimeoutFlag() && !response3.getTimeoutFlag()) {
+                results.add(String.format("%2d     %3d ms       *        %3d ms     %s", ttl, response1.getRtt(), response3.getRtt(), response1.getHost()));
+
+                if (response1.getSuccessFlag()) {
+                    results.add("Traceroute completed.");
+                    break;
+                }
+            }
+
+            if (!response1.getTimeoutFlag() && !response2.getTimeoutFlag() && response3.getTimeoutFlag()) {
+                results.add(String.format("%2d     %3d ms     %3d ms       *        %s", ttl, response1.getRtt(), response2.getRtt(), response1.getHost()));
+
+                if (response1.getSuccessFlag()) {
                     results.add("Traceroute completed.");
                     break;
                 }
