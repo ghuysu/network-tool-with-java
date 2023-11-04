@@ -310,14 +310,75 @@ public class NetworkToolApp {
         JLabel label = new JLabel("Enter IP Address or Domain:");
         JTextField inputField = new JTextField(20);
         JButton traceButton = new JButton("Trace");
-        JTextArea outputArea = new JTextArea(10, 30);
+        JTextArea outputArea = new JTextArea(17, 52);
         outputArea.setEditable(false);
 
         traceButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String host = inputField.getText();
+                outputArea.setText("");
+                if (isValidDomain(host) || isValidIpv4(host)) {
+                    SwingWorker<Void, String> tracerouteWorker = new SwingWorker<Void, String>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                            IcmpPingRequest request = IcmpPingUtil.createIcmpPingRequest();
+                            request.setHost(host);
 
+                            for (int ttl = 1; ttl <= 30; ttl++) {
+                                request.setTtl(ttl);
+
+                                IcmpPingResponse[] responses = new IcmpPingResponse[3];
+                                boolean allTimeout = true;
+
+                                for (int i = 0; i < 3; i++) {
+                                    responses[i] = IcmpPingUtil.executePingRequest(request);
+                                    allTimeout &= responses[i].getTimeoutFlag();
+                                }
+
+                                if (allTimeout) {
+                                    publish(String.format("%2d       *          *          *        Request timed out.", ttl));
+                                } else {
+                                    StringBuilder resultLine = new StringBuilder(String.format("%2d", ttl));
+
+                                    for (IcmpPingResponse response : responses) {
+                                        if (!response.getTimeoutFlag()) {
+                                            resultLine.append(String.format("     %3d ms", response.getRtt()));
+                                        } else {
+                                            resultLine.append("       *   ");
+                                        }
+                                    }
+
+                                    if (!responses[0].getTimeoutFlag()) {
+                                        resultLine.append(String.format("     %s", responses[0].getHost()));
+                                    } else if (!responses[1].getTimeoutFlag()) {
+                                        resultLine.append(String.format("     %s", responses[1].getHost()));
+                                    } else if (!responses[2].getTimeoutFlag()) {
+                                        resultLine.append(String.format("     %s", responses[2].getHost()));
+                                    }
+                                    publish(resultLine.toString());
+
+                                    if (responses[0].getSuccessFlag() || responses[1].getSuccessFlag() || responses[2].getSuccessFlag()) {
+                                        publish("Traceroute completed.");
+                                        break;
+                                    }
+                                }
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        protected void process(List<String> chunks) {
+                            for (String chunk : chunks) {
+                                outputArea.append(chunk + "\n");
+                            }
+                        }
+                    };
+
+                    tracerouteWorker.execute();
+                } else {
+                    outputArea.setText(host + " is not a valid domain or IP address.");
+                }
             }
         });
 
